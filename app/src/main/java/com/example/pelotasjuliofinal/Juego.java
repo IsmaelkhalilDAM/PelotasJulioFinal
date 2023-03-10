@@ -1,5 +1,6 @@
 package com.example.pelotasjuliofinal;
 
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -12,7 +13,127 @@ import android.view.View;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.View;
 
+import java.util.ArrayList;
+
+public class Juego implements Runnable, View.OnTouchListener {
+
+    private static final int NUMPELOTAS = 25;
+    private int [] listaColores;
+    private SurfaceHolder holder;
+    private float width;
+    private float height;
+    private final Paint paint;
+    private volatile boolean fin;
+    private Thread gameLoop;
+
+    private final ArrayList<Pelota> pelotas = new ArrayList<>();
+
+    public Juego() {
+        paint = new Paint();
+    }
+
+
+    public void iniciar(SurfaceHolder holder, int width, int height) {
+        this.holder = holder;
+        this.width = width;
+        this.height = height;
+        Resources res = getResources();
+        listaColores=res.getIntArray(R.array.lista_colores);
+        // Creamos las pelotas y las añadimos al ArrayList
+        for (int i = 0; i < NUMPELOTAS; i++) {
+            float x = Aleatorio.sgte(50, (int) (width - 50));
+            float y = Aleatorio.sgte(50, (int) (height - 50));
+            float radio = Aleatorio.sgte(20, 60);
+            float v = Aleatorio.sgte(50, 250);
+            float dir = Aleatorio.sgte(0, 360) * (float) Math.PI / 180f;
+
+            int color =
+            Pelota pelota = new Pelota(x, y, radio, v, dir, color, this);
+            pelotas.add(pelota);
+        }
+    }
+
+    @Override
+    public void run() {
+        while (!fin) {
+            Canvas canvas = holder.lockCanvas();
+            if (canvas != null) {
+                // Limpiamos la pantalla
+                canvas.drawColor(Color.WHITE);
+
+                // Dibujamos las pelotas
+                for (Pelota pelota : pelotas) {
+                    pelota.paint(canvas);
+                }
+
+                // Actualizamos las pelotas
+                for (Pelota pelota : pelotas) {
+                    pelota.mover(System.nanoTime());
+                }
+
+                holder.unlockCanvasAndPost(canvas);
+            }
+
+            // Dormimos el hilo para reducir la tasa de refresco a 60 FPS
+            try {
+                Thread.sleep(16);
+            } catch (InterruptedException e) {
+                Log.e("Juego", "El hilo del juego ha sido interrumpido", e);
+            }
+        }
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        // No hacemos nada en este método
+        return false;
+    }
+
+    public void resume() {
+        fin = false;
+        gameLoop = new Thread(this);
+        gameLoop.start();
+    }
+
+    public void pause() {
+        fin = true;
+        while (true) {
+            try {
+                gameLoop.join();
+                return;
+            } catch (InterruptedException e) {
+                Log.e("Juego", "El hilo del juego no se ha podido detener", e);
+            }
+        }
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public Paint getPaint() {
+        return paint;
+    }
+
+}
+
+
+
+
+/*
 public class Juego implements Runnable, View.OnTouchListener {
 
     private static final int NUMPELOTAS = 25;
@@ -150,3 +271,4 @@ public class Juego implements Runnable, View.OnTouchListener {
         return true;
     }
 }
+*/

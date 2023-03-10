@@ -26,6 +26,24 @@ public class Pelota {
     }
 
     public void mover(float lapso) {
+        x += vx * lapso * 9 / (1000000000f * 2);
+        if (x + radio >= juego.getWidth()) {
+            x -= (x + radio - juego.getWidth()) * 2;
+            vx = -vx;
+        } else if (x - radio <= 0) {
+            x += (radio - x) * 2;
+            vx = -vx;
+        }
+        y += vy * lapso * 9 / (1000000000f * 2);
+        if (y + radio >= juego.getHeight()) {
+            y -= (y + radio - juego.getHeight()) * 2;
+            vy = -vy;
+        } else if (y - radio <= 0) {
+            y += (radio - y) * 2;
+            vy = -vy;
+        }
+    }
+   /* public void mover(float lapso) {
         switch (Aleatorio.sgte(1, 3)) {
             case 1:
                 x += vx * lapso*9 / (1000000000f*2);
@@ -83,7 +101,7 @@ public class Pelota {
                 break;
         }
 
-    }
+    }*/
 
     public void paint(Canvas canvas) {
         canvas.drawCircle(x, y, radio, paint);
